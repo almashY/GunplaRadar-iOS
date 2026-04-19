@@ -13,8 +13,11 @@ struct GunplaFormView: View {
     let repository: GunplaRepository
     let editingItem: GunplaItem?
 
+    private let gradeOptions = ["RE", "PG", "MG", "RG", "HG", "EG", "その他"]
+
     @State private var name: String = ""
-    @State private var grade: String = ""
+    @State private var selectedGrade: String = "HG"
+    @State private var customGrade: String = ""
     @State private var priceText: String = ""
     @State private var urlText: String = ""
     @State private var hasReleaseDate: Bool = false
@@ -46,10 +49,15 @@ struct GunplaFormView: View {
                             Text(error).font(.caption).foregroundStyle(.red)
                         }
                     }
-                    VStack(alignment: .leading, spacing: 4) {
-                        TextField("グレード *", text: $grade)
-                        if let error = gradeError {
-                            Text(error).font(.caption).foregroundStyle(.red)
+                    Picker("グレード", selection: $selectedGrade) {
+                        ForEach(gradeOptions, id: \.self) { Text($0).tag($0) }
+                    }
+                    if selectedGrade == "その他" {
+                        VStack(alignment: .leading, spacing: 4) {
+                            TextField("グレードを入力", text: $customGrade)
+                            if let error = gradeError {
+                                Text(error).font(.caption).foregroundStyle(.red)
+                            }
                         }
                     }
                     TextField("価格", text: $priceText)
@@ -111,10 +119,19 @@ struct GunplaFormView: View {
         }
     }
 
+    private var resolvedGrade: String {
+        selectedGrade == "その他" ? customGrade.trimmingCharacters(in: .whitespaces) : selectedGrade
+    }
+
     private func loadIfEditing() {
         guard let item = editingItem else { return }
         name = item.name
-        grade = item.grade
+        if gradeOptions.contains(item.grade) {
+            selectedGrade = item.grade
+        } else {
+            selectedGrade = "その他"
+            customGrade = item.grade
+        }
         priceText = item.price.map { String($0) } ?? ""
         urlText = item.url ?? ""
         if let d = item.releaseDate { hasReleaseDate = true; releaseDate = d }
@@ -125,7 +142,7 @@ struct GunplaFormView: View {
 
     private func validate() -> Bool {
         nameError = name.trimmingCharacters(in: .whitespaces).isEmpty ? "名前は必須です" : nil
-        gradeError = grade.trimmingCharacters(in: .whitespaces).isEmpty ? "グレードは必須です" : nil
+        gradeError = resolvedGrade.isEmpty ? "グレードを入力してください" : nil
         return nameError == nil && gradeError == nil
     }
 
@@ -134,7 +151,7 @@ struct GunplaFormView: View {
         let price = Int(priceText)
         if let item = editingItem {
             item.name = name.trimmingCharacters(in: .whitespaces)
-            item.grade = grade.trimmingCharacters(in: .whitespaces)
+            item.grade = resolvedGrade
             item.price = price
             item.url = urlText.isEmpty ? nil : urlText
             item.releaseDate = hasReleaseDate ? releaseDate : nil
@@ -145,7 +162,7 @@ struct GunplaFormView: View {
         } else {
             let item = GunplaItem(
                 name: name.trimmingCharacters(in: .whitespaces),
-                grade: grade.trimmingCharacters(in: .whitespaces),
+                grade: resolvedGrade,
                 price: price,
                 url: urlText.isEmpty ? nil : urlText,
                 releaseDate: hasReleaseDate ? releaseDate : nil,
