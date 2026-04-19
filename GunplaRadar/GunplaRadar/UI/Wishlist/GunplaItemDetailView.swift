@@ -1,0 +1,111 @@
+//
+//  GunplaItemDetailView.swift
+//  GunplaRadar
+//
+//  Created by almashY on 2026/04/19.
+//
+
+import SwiftUI
+
+struct GunplaItemDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let item: GunplaItem
+    let repository: GunplaRepository
+    let onDelete: () -> Void
+
+    @State private var showingEdit = false
+    @State private var showingDeleteConfirm = false
+
+    private let priorityLabels = ["最高", "高", "中", "低"]
+    private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
+
+    private var tagColor: Color {
+        guard item.tagColor >= 0 && item.tagColor < tagColors.count else { return .gray }
+        return tagColors[item.tagColor]
+    }
+
+    var body: some View {
+        List {
+            Section {
+                HStack {
+                    Rectangle()
+                        .fill(tagColor)
+                        .frame(width: 6)
+                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.name)
+                            .font(.title2.bold())
+                        Text(item.grade)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.leading, 4)
+                }
+                .padding(.vertical, 4)
+            }
+
+            Section("詳細情報") {
+                if let price = item.price {
+                    LabeledContent("価格", value: "¥\(price)")
+                }
+                LabeledContent("優先度", value: priorityLabels[safe: item.priority] ?? "-")
+                if let releaseDate = item.releaseDate {
+                    LabeledContent("発売日", value: releaseDate.formatted(.dateTime.year().month().day()))
+                }
+                if let restockDate = item.restockDate {
+                    LabeledContent("再販日", value: restockDate.formatted(.dateTime.year().month().day()))
+                }
+                if let purchasedDate = item.purchasedDate {
+                    LabeledContent("購入日", value: purchasedDate.formatted(.dateTime.year().month().day()))
+                }
+            }
+
+            if let urlString = item.url, let url = URL(string: urlString) {
+                Section("リンク") {
+                    Link(destination: url) {
+                        HStack {
+                            Image(systemName: "safari")
+                                .foregroundStyle(Color.accentColor)
+                            Text(urlString)
+                                .font(.footnote)
+                                .foregroundStyle(Color.accentColor)
+                                .lineLimit(2)
+                        }
+                    }
+                }
+            }
+
+            Section {
+                Button(role: .destructive) {
+                    showingDeleteConfirm = true
+                } label: {
+                    Label("削除", systemImage: "trash")
+                }
+            }
+        }
+        .navigationTitle(item.name)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("編集") { showingEdit = true }
+            }
+        }
+        .sheet(isPresented: $showingEdit) {
+            GunplaFormView(repository: repository, editingItem: item)
+        }
+        .confirmationDialog("削除しますか？", isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
+            Button("削除", role: .destructive) {
+                repository.deleteItem(item)
+                onDelete()
+                dismiss()
+            }
+            Button("キャンセル", role: .cancel) {}
+        }
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}

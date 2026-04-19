@@ -11,7 +11,7 @@ import SwiftData
 struct WishlistView: View {
     @State private var viewModel: WishlistViewModel
     @State private var showingAddForm = false
-    @State private var editingItem: GunplaItem?
+    @State private var selectedItem: GunplaItem?
 
     init(repository: GunplaRepository) {
         _viewModel = State(initialValue: WishlistViewModel(repository: repository))
@@ -63,16 +63,16 @@ struct WishlistView: View {
                 } else {
                     List {
                         ForEach(viewModel.filteredItems, id: \.id) { item in
-                            GunplaItemCard(item: item)
-                                .contentShape(Rectangle())
-                                .onTapGesture { editingItem = item }
-                                .swipeActions(edge: .trailing) {
-                                    Button(role: .destructive) {
-                                        viewModel.deleteItem(item)
-                                    } label: {
-                                        Label("削除", systemImage: "trash")
-                                    }
+                            NavigationLink(value: item) {
+                                GunplaItemCard(item: item)
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    viewModel.deleteItem(item)
+                                } label: {
+                                    Label("削除", systemImage: "trash")
                                 }
+                            }
                         }
                     }
                     .listStyle(.plain)
@@ -86,11 +86,13 @@ struct WishlistView: View {
                     }
                 }
             }
+            .navigationDestination(for: GunplaItem.self) { item in
+                GunplaItemDetailView(item: item, repository: viewModel.repositoryRef, onDelete: {
+                    viewModel.loadItems()
+                })
+            }
             .sheet(isPresented: $showingAddForm, onDismiss: { viewModel.loadItems() }) {
                 GunplaFormView(repository: viewModel.repositoryRef)
-            }
-            .sheet(item: $editingItem, onDismiss: { viewModel.loadItems() }) { item in
-                GunplaFormView(repository: viewModel.repositoryRef, editingItem: item)
             }
             .onAppear { viewModel.loadItems() }
         }
