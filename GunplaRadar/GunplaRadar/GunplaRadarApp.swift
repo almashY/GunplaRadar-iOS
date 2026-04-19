@@ -6,12 +6,19 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct GunplaRadarApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
+        .modelContainer(for: [
+            GunplaItem.self,
+            GunplaStore.self,
+            PatrolPlan.self,
+            StockDelayRecord.self
+        ])
     }
 }

@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+._*
+
+# Xcode ユーザー固有設定
+xcuserdata/
+*.xcuserstate
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.xccheckout
+
+# ビルド成果物
+DerivedData/
+build/
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# ログ
+*.log
