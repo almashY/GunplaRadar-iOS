@@ -58,7 +58,7 @@ struct WishlistView: View {
                     ContentUnavailableView(
                         "アイテムがありません",
                         systemImage: "list.bullet",
-                        description: Text("右下の+ボタンからガンプラを追加してください")
+                        description: Text("右上の+ボタンからガンプラを追加してください")
                     )
                 } else {
                     List {
