@@ -15,7 +15,7 @@ struct CalendarView: View {
         _viewModel = State(initialValue: CalendarViewModel(repository: repository))
     }
 
-    private let weekdays = ["日", "月", "火", "水", "木", "金", "土"]
+    private let weekdays = ["", "月", "火", "水", "木", "金", "土"]
     private let calendar = Calendar.current
 
     var body: some View {
