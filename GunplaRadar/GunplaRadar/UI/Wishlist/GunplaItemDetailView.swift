@@ -25,61 +25,77 @@ struct GunplaItemDetailView: View {
     }
 
     var body: some View {
-        List {
-            Section {
-                HStack {
-                    Rectangle()
-                        .fill(tagColor)
-                        .frame(width: 6)
-                        .clipShape(RoundedRectangle(cornerRadius: 3))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.name)
-                            .font(.title2.bold())
-                        Text(item.grade)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+        GeometryReader { geometry in
+            List {
+                // 画像セクション（画面高さの25%）
+                if let data = item.imageData, let uiImage = UIImage(data: data) {
+                    Section {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width - 32,
+                                   height: geometry.size.height * 0.25)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
-                    .padding(.leading, 4)
                 }
-                .padding(.vertical, 4)
-            }
 
-            Section("詳細情報") {
-                if let price = item.price {
-                    LabeledContent("価格", value: "¥\(price)")
+                Section {
+                    HStack {
+                        Rectangle()
+                            .fill(tagColor)
+                            .frame(width: 6)
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.name)
+                                .font(.title2.bold())
+                            Text(item.grade)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.leading, 4)
+                    }
+                    .padding(.vertical, 4)
                 }
-                LabeledContent("優先度", value: priorityLabels[safe: item.priority] ?? "-")
-                if let releaseDate = item.releaseDate {
-                    LabeledContent("発売日", value: releaseDate.formatted(.dateTime.year().month().day()))
-                }
-                if let restockDate = item.restockDate {
-                    LabeledContent("再販日", value: restockDate.formatted(.dateTime.year().month().day()))
-                }
-                if let purchasedDate = item.purchasedDate {
-                    LabeledContent("購入日", value: purchasedDate.formatted(.dateTime.year().month().day()))
-                }
-            }
 
-            if let urlString = item.url, let url = URL(string: urlString) {
-                Section("リンク") {
-                    Link(destination: url) {
-                        HStack {
-                            Image(systemName: "safari")
-                                .foregroundStyle(Color.accentColor)
-                            Text(urlString)
-                                .font(.footnote)
-                                .foregroundStyle(Color.accentColor)
-                                .lineLimit(2)
+                Section("詳細情報") {
+                    if let price = item.price {
+                        LabeledContent("価格", value: "¥\(price)")
+                    }
+                    LabeledContent("優先度", value: priorityLabels[safe: item.priority] ?? "-")
+                    if let releaseDate = item.releaseDate {
+                        LabeledContent("発売日", value: releaseDate.formatted(.dateTime.year().month().day()))
+                    }
+                    if let restockDate = item.restockDate {
+                        LabeledContent("再販日", value: restockDate.formatted(.dateTime.year().month().day()))
+                    }
+                    if let purchasedDate = item.purchasedDate {
+                        LabeledContent("購入日", value: purchasedDate.formatted(.dateTime.year().month().day()))
+                    }
+                }
+
+                if let urlString = item.url, let url = URL(string: urlString) {
+                    Section("リンク") {
+                        Link(destination: url) {
+                            HStack {
+                                Image(systemName: "safari")
+                                    .foregroundStyle(Color.accentColor)
+                                Text(urlString)
+                                    .font(.footnote)
+                                    .foregroundStyle(Color.accentColor)
+                                    .lineLimit(2)
+                            }
                         }
                     }
                 }
-            }
 
-            Section {
-                Button(role: .destructive) {
-                    showingDeleteConfirm = true
-                } label: {
-                    Label("削除", systemImage: "trash")
+                Section {
+                    Button(role: .destructive) {
+                        showingDeleteConfirm = true
+                    } label: {
+                        Label("削除", systemImage: "trash")
+                    }
                 }
             }
         }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct GunplaFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -28,6 +29,8 @@ struct GunplaFormView: View {
     @State private var tagColor: Int = 0
     @State private var nameError: String? = nil
     @State private var gradeError: String? = nil
+    @State private var imageData: Data? = nil
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
 
     private let priorityLabels = ["最高", "高", "中", "低"]
     private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
@@ -42,68 +45,11 @@ struct GunplaFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("基本情報") {
-                    VStack(alignment: .leading, spacing: 4) {
-                        TextField("名前 *", text: $name)
-                        if let error = nameError {
-                            Text(error).font(.caption).foregroundStyle(.red)
-                        }
-                    }
-                    Picker("グレード", selection: $selectedGrade) {
-                        ForEach(gradeOptions, id: \.self) { Text($0).tag($0) }
-                    }
-                    if selectedGrade == "その他" {
-                        VStack(alignment: .leading, spacing: 4) {
-                            TextField("グレードを入力", text: $customGrade)
-                            if let error = gradeError {
-                                Text(error).font(.caption).foregroundStyle(.red)
-                            }
-                        }
-                    }
-                    TextField("価格", text: $priceText)
-                        .keyboardType(.numberPad)
-                    TextField("URL", text: $urlText)
-                        .keyboardType(.URL)
-                        .autocorrectionDisabled()
-                }
-
-                Section("日付") {
-                    Toggle("発売日", isOn: $hasReleaseDate)
-                    if hasReleaseDate {
-                        DatePicker("", selection: $releaseDate, displayedComponents: .date)
-                            .labelsHidden()
-                    }
-                    Toggle("再販日", isOn: $hasRestockDate)
-                    if hasRestockDate {
-                        DatePicker("", selection: $restockDate, displayedComponents: .date)
-                            .labelsHidden()
-                    }
-                }
-
-                Section("優先度") {
-                    Picker("優先度", selection: $priority) {
-                        ForEach(0..<4) { i in
-                            Text(priorityLabels[i]).tag(i)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                Section("タグカラー") {
-                    HStack(spacing: 16) {
-                        ForEach(0..<6) { i in
-                            Circle()
-                                .fill(tagColors[i])
-                                .frame(width: 30, height: 30)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.primary, lineWidth: tagColor == i ? 2 : 0)
-                                )
-                                .onTapGesture { tagColor = i }
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
+                Section("画像") { imagePickerSection }
+                basicInfoSection
+                dateSection
+                prioritySection
+                tagColorSection
             }
             .navigationTitle(isEditing ? "編集" : "ガンプラ追加")
             .navigationBarTitleDisplayMode(.inline)
@@ -116,6 +62,114 @@ struct GunplaFormView: View {
                 }
             }
             .onAppear { loadIfEditing() }
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                Task {
+                    guard let newItem,
+                          let data = try? await newItem.loadTransferable(type: Data.self) else { return }
+                    imageData = ImageProcessor.compress(data)
+                }
+            }
+        }
+    }
+
+    private var basicInfoSection: some View {
+        Section("基本情報") {
+            VStack(alignment: .leading, spacing: 4) {
+                TextField("名前 *", text: $name)
+                if let error = nameError {
+                    Text(error).font(.caption).foregroundStyle(.red)
+                }
+            }
+            Picker("グレード", selection: $selectedGrade) {
+                ForEach(gradeOptions, id: \.self) { Text($0).tag($0) }
+            }
+            if selectedGrade == "その他" {
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField("グレードを入力", text: $customGrade)
+                    if let error = gradeError {
+                        Text(error).font(.caption).foregroundStyle(.red)
+                    }
+                }
+            }
+            TextField("価格", text: $priceText)
+                .keyboardType(.numberPad)
+            TextField("URL", text: $urlText)
+                .keyboardType(.URL)
+                .autocorrectionDisabled()
+        }
+    }
+
+    private var dateSection: some View {
+        Section("日付") {
+            Toggle("発売日", isOn: $hasReleaseDate)
+            if hasReleaseDate {
+                DatePicker("", selection: $releaseDate, displayedComponents: .date)
+                    .labelsHidden()
+            }
+            Toggle("再販日", isOn: $hasRestockDate)
+            if hasRestockDate {
+                DatePicker("", selection: $restockDate, displayedComponents: .date)
+                    .labelsHidden()
+            }
+        }
+    }
+
+    private var prioritySection: some View {
+        Section("優先度") {
+            Picker("優先度", selection: $priority) {
+                ForEach(0..<4) { i in
+                    Text(priorityLabels[i]).tag(i)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    private var tagColorSection: some View {
+        Section("タグカラー") {
+            HStack(spacing: 16) {
+                ForEach(0..<6) { i in
+                    Circle()
+                        .fill(tagColors[i])
+                        .frame(width: 30, height: 30)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.primary, lineWidth: tagColor == i ? 2 : 0)
+                        )
+                        .onTapGesture { tagColor = i }
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    @ViewBuilder
+    private var imagePickerSection: some View {
+        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+            if let data = imageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 120)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                HStack {
+                    Image(systemName: "photo.badge.plus")
+                    Text("画像を選択")
+                }
+                .foregroundStyle(Color.accentColor)
+                .frame(maxWidth: .infinity, minHeight: 60)
+            }
+        }
+        if imageData != nil {
+            Button(role: .destructive) {
+                imageData = nil
+                selectedPhotoItem = nil
+            } label: {
+                Label("画像を削除", systemImage: "trash")
+            }
         }
     }
 
@@ -138,6 +192,7 @@ struct GunplaFormView: View {
         if let d = item.restockDate { hasRestockDate = true; restockDate = d }
         priority = item.priority
         tagColor = item.tagColor
+        imageData = item.imageData
     }
 
     private func validate() -> Bool {
@@ -153,6 +208,7 @@ struct GunplaFormView: View {
             item.name = name.trimmingCharacters(in: .whitespaces)
             item.grade = resolvedGrade
             item.price = price
+            item.imageData = imageData
             item.url = urlText.isEmpty ? nil : urlText
             item.releaseDate = hasReleaseDate ? releaseDate : nil
             item.restockDate = hasRestockDate ? restockDate : nil
@@ -164,6 +220,7 @@ struct GunplaFormView: View {
                 name: name.trimmingCharacters(in: .whitespaces),
                 grade: resolvedGrade,
                 price: price,
+                imageData: imageData,
                 url: urlText.isEmpty ? nil : urlText,
                 releaseDate: hasReleaseDate ? releaseDate : nil,
                 restockDate: hasRestockDate ? restockDate : nil,
