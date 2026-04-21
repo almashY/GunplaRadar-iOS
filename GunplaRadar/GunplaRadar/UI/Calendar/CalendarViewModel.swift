@@ -61,10 +61,17 @@ class CalendarViewModel {
         patrolPlans = repository.fetchAllPlans()
     }
 
-    func restockDates() -> Set<String> {
+    /// 日付キー → その日に再販日を持つアイテムのタグカラー配列
+    func restockTagColors() -> [String: [Int]] {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        return Set(itemsWithRestock.compactMap { $0.restockDate }.map { formatter.string(from: $0) })
+        var result: [String: [Int]] = [:]
+        for item in itemsWithRestock {
+            guard let date = item.restockDate else { continue }
+            let key = formatter.string(from: date)
+            result[key, default: []].append(item.tagColor)
+        }
+        return result
     }
 
     func patrolDates() -> Set<String> {

@@ -16,7 +16,7 @@ struct GunplaItemDetailView: View {
     @State private var showingEdit = false
     @State private var showingDeleteConfirm = false
 
-    private let priorityLabels = ["最高", "高", "中", "低"]
+    private let priorityLabels = ["低", "中", "高", "最高"]
     private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
     private var tagColor: Color {

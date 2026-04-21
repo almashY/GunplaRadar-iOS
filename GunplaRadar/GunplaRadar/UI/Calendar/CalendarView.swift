@@ -50,7 +50,7 @@ struct CalendarView: View {
 
                 // カレンダーグリッド
                 let days = daysInMonth()
-                let restockSet = viewModel.restockDates()
+                let restockColors = viewModel.restockTagColors()
                 let patrolSet = viewModel.patrolDates()
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 4) {
@@ -59,7 +59,7 @@ struct CalendarView: View {
                             CalendarDayCell(
                                 date: date,
                                 isSelected: viewModel.selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false,
-                                hasRestock: restockSet.contains(dateKey(date)),
+                                restockTagColors: restockColors[dateKey(date)] ?? [],
                                 hasPatrol: patrolSet.contains(dateKey(date)),
                                 isToday: calendar.isDateInToday(date)
                             )
@@ -157,9 +157,11 @@ struct CalendarView: View {
 private struct CalendarDayCell: View {
     let date: Date
     let isSelected: Bool
-    let hasRestock: Bool
+    let restockTagColors: [Int]
     let hasPatrol: Bool
     let isToday: Bool
+
+    private let tagColorList: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
     private var dayNumber: Int {
         Calendar.current.component(.day, from: date)
@@ -173,14 +175,24 @@ private struct CalendarDayCell: View {
                 .background(isSelected ? Color.accentColor : isToday ? Color.accentColor.opacity(0.2) : Color.clear)
                 .foregroundStyle(isSelected ? .white : .primary)
                 .clipShape(Circle())
-            if hasRestock {
-                Circle()
-                    .fill(Color.orange)
-                    .frame(width: 5, height: 5)
-            } else {
-                Color.clear.frame(width: 5, height: 5)
+            // タグカラーのドット（最大3つ表示）
+            HStack(spacing: 2) {
+                ForEach(Array(restockTagColors.prefix(3).enumerated()), id: \.offset) { _, colorIndex in
+                    Circle()
+                        .fill(tagColorList[safe: colorIndex] ?? .orange)
+                        .frame(width: 5, height: 5)
+                }
+                if restockTagColors.isEmpty {
+                    Color.clear.frame(width: 5, height: 5)
+                }
             }
         }
         .frame(height: 44)
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

@@ -104,9 +104,9 @@ private struct GunplaItemCard: View {
 
     private var priorityColor: Color {
         switch item.priority {
-        case 0: return .red
-        case 1: return .orange
-        case 2: return .blue
+        case 3: return .red
+        case 2: return .orange
+        case 1: return .blue
         default: return .gray
         }
     }
@@ -147,6 +147,15 @@ private struct GunplaItemCard: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+            }
+
+            if let data = item.imageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 56, height: 56)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
             }
         }
         .padding(.vertical, 4)

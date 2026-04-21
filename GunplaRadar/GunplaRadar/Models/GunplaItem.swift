@@ -20,7 +20,7 @@ class GunplaItem {
     var restockDate: Date?
     var purchasedDate: Date?
     var purchaseStoreId: String?
-    var priority: Int  // 0:最高, 1:高, 2:中, 3:低
+    var priority: Int  // 0:低, 1:中, 2:高, 3:最高
     var tagColor: Int  // 0-5
 
     init(
@@ -34,7 +34,7 @@ class GunplaItem {
         restockDate: Date? = nil,
         purchasedDate: Date? = nil,
         purchaseStoreId: String? = nil,
-        priority: Int = 2,
+        priority: Int = 1,
         tagColor: Int = 0
     ) {
         self.id = id

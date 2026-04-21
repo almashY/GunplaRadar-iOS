@@ -44,7 +44,7 @@ class WishlistViewModel {
         return searched.sorted { lhs, rhs in
             switch sortOrder {
             case .priority:
-                return lhs.priority < rhs.priority
+                return lhs.priority > rhs.priority
             case .name:
                 return lhs.name < rhs.name
             case .priceAsc:

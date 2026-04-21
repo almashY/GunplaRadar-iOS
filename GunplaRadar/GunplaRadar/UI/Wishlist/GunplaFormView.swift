@@ -25,14 +25,14 @@ struct GunplaFormView: View {
     @State private var releaseDate: Date = Date()
     @State private var hasRestockDate: Bool = false
     @State private var restockDate: Date = Date()
-    @State private var priority: Int = 2
+    @State private var priority: Int = 1
     @State private var tagColor: Int = 0
     @State private var nameError: String? = nil
     @State private var gradeError: String? = nil
     @State private var imageData: Data? = nil
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
 
-    private let priorityLabels = ["最高", "高", "中", "低"]
+    private let priorityLabels = ["低", "中", "高", "最高"]
     private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
     init(repository: GunplaRepository, editingItem: GunplaItem? = nil) {
