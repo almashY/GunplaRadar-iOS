@@ -27,20 +27,6 @@ struct GunplaItemDetailView: View {
     var body: some View {
         GeometryReader { geometry in
             List {
-                // 画像セクション（画面高さの25%）
-                if let data = item.imageData, let uiImage = UIImage(data: data) {
-                    Section {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: geometry.size.width - 32,
-                                   height: geometry.size.height * 0.25)
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    }
-                }
-
                 Section {
                     HStack {
                         Rectangle()
@@ -72,6 +58,22 @@ struct GunplaItemDetailView: View {
                     }
                     if let purchasedDate = item.purchasedDate {
                         LabeledContent("購入日", value: purchasedDate.formatted(.dateTime.year().month().day()))
+                    }
+                }
+
+                // 画像セクション（詳細情報の下・画面幅の80%・見切れなし・中央揃え）
+                if let data = item.imageData, let uiImage = UIImage(data: data) {
+                    Section("画像") {
+                        HStack {
+                            Spacer()
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: geometry.size.width * 0.80)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            Spacer()
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                     }
                 }
 

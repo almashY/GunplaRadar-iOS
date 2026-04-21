@@ -45,8 +45,8 @@ struct GunplaFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("画像") { imagePickerSection }
                 basicInfoSection
+                Section("画像") { imagePickerSection }
                 dateSection
                 prioritySection
                 tagColorSection
@@ -145,24 +145,32 @@ struct GunplaFormView: View {
 
     @ViewBuilder
     private var imagePickerSection: some View {
-        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-            if let data = imageData, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 120)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else {
-                HStack {
-                    Image(systemName: "photo.badge.plus")
-                    Text("画像を選択")
+        GeometryReader { geometry in
+            HStack {
+                Spacer()
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                    if let data = imageData, let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: geometry.size.width * 0.8)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
+                        VStack(spacing: 6) {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.largeTitle)
+                            Text("画像を選択")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(Color.accentColor)
+                        .frame(width: geometry.size.width * 0.8, height: 80)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
-                .foregroundStyle(Color.accentColor)
-                .frame(maxWidth: .infinity, minHeight: 60)
+                Spacer()
             }
         }
+        .frame(minHeight: 100)
         if imageData != nil {
             Button(role: .destructive) {
                 imageData = nil
