@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import CoreLocation
 
 struct StoreView: View {
     @State private var viewModel: StoreViewModel
@@ -23,6 +24,7 @@ struct StoreView: View {
     @State private var searchCompleter = LocationSearchCompleter()
     @State private var searchQuery: String = ""
     @State private var isSearchFocused: Bool = false
+    @State private var locationManager = CLLocationManager()
 
     init(repository: GunplaRepository) {
         _viewModel = State(initialValue: StoreViewModel(repository: repository))
@@ -76,7 +78,10 @@ struct StoreView: View {
                     }
                 }
             }
-            .onAppear { viewModel.loadStores() }
+            .onAppear {
+                viewModel.loadStores()
+                locationManager.requestWhenInUseAuthorization()
+            }
         }
     }
 
@@ -84,6 +89,7 @@ struct StoreView: View {
 
     private var mapLayer: some View {
         Map(position: $cameraPosition, selection: $selectedMapFeature) {
+            UserAnnotation()
             ForEach(viewModel.stores, id: \.id) { store in
                 Annotation(
                     store.name,
@@ -183,12 +189,21 @@ struct StoreView: View {
             Spacer()
             HStack {
                 Spacer()
-                Button(action: { showingList = true }) {
-                    Image(systemName: "list.bullet")
-                        .padding(12)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 4)
+                VStack(spacing: 12) {
+                    Button(action: moveToCurrentLocation) {
+                        Image(systemName: "location.fill")
+                            .padding(12)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                    Button(action: { showingList = true }) {
+                        Image(systemName: "list.bullet")
+                            .padding(12)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
                 }
                 .padding()
             }
@@ -212,6 +227,16 @@ struct StoreView: View {
         }
     }
 
+    private func moveToCurrentLocation() {
+        cameraPosition = .userLocation(
+            followsHeading: false,
+            fallback: .region(MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+                span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            ))
+        )
+    }
+
     private func dismissKeyboard() {
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil
@@ -228,7 +253,7 @@ private struct StoreAnnotationView: View {
     var body: some View {
         VStack(spacing: 2) {
             Image(systemName: isSelected ? "mappin.circle.fill" : "mappin.circle")
-                .foregroundStyle(store.isFavorite ? Color.yellow : Color.red)
+                .foregroundStyle(store.isFavorite ? Color.red : Color.orange)
                 .font(isSelected ? .title : .title2)
                 .shadow(radius: isSelected ? 4 : 0)
             if store.averageDelayHours > 0 {
