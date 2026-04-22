@@ -106,8 +106,8 @@ private struct GunplaItemCard: View {
         switch item.priority {
         case 3: return .red
         case 2: return .orange
-        case 1: return .blue
-        default: return .gray
+        case 1: return .green
+        default: return .blue
         }
     }
 
