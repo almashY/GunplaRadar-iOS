@@ -111,16 +111,10 @@ private struct GunplaItemCard: View {
         }
     }
 
-    private var tagColor: Color {
-        let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
-        guard item.tagColor >= 0 && item.tagColor < colors.count else { return .gray }
-        return colors[item.tagColor]
-    }
-
     var body: some View {
         HStack(spacing: 12) {
             Rectangle()
-                .fill(tagColor)
+                .fill(priorityColor)
                 .frame(width: 4)
                 .clipShape(RoundedRectangle(cornerRadius: 2))
 
@@ -129,9 +123,6 @@ private struct GunplaItemCard: View {
                     Text(item.name)
                         .font(.headline)
                     Spacer()
-                    Circle()
-                        .fill(priorityColor)
-                        .frame(width: 10, height: 10)
                 }
                 Text(item.grade)
                     .font(.subheadline)

@@ -26,14 +26,12 @@ struct GunplaFormView: View {
     @State private var hasRestockDate: Bool = false
     @State private var restockDate: Date = Date()
     @State private var priority: Int = 1
-    @State private var tagColor: Int = 0
     @State private var nameError: String? = nil
     @State private var gradeError: String? = nil
     @State private var imageData: Data? = nil
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
 
     private let priorityLabels = ["低", "中", "高", "最高"]
-    private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
     init(repository: GunplaRepository, editingItem: GunplaItem? = nil) {
         self.repository = repository
@@ -49,7 +47,6 @@ struct GunplaFormView: View {
                 Section("画像") { imagePickerSection }
                 dateSection
                 prioritySection
-                tagColorSection
             }
             .navigationTitle(isEditing ? "編集" : "ガンプラ追加")
             .navigationBarTitleDisplayMode(.inline)
@@ -125,24 +122,6 @@ struct GunplaFormView: View {
         }
     }
 
-    private var tagColorSection: some View {
-        Section("タグカラー") {
-            HStack(spacing: 16) {
-                ForEach(0..<6) { i in
-                    Circle()
-                        .fill(tagColors[i])
-                        .frame(width: 30, height: 30)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.primary, lineWidth: tagColor == i ? 2 : 0)
-                        )
-                        .onTapGesture { tagColor = i }
-                }
-            }
-            .padding(.vertical, 4)
-        }
-    }
-
     @ViewBuilder
     private var imagePickerSection: some View {
         GeometryReader { geometry in
@@ -199,7 +178,6 @@ struct GunplaFormView: View {
         if let d = item.releaseDate { hasReleaseDate = true; releaseDate = d }
         if let d = item.restockDate { hasRestockDate = true; restockDate = d }
         priority = item.priority
-        tagColor = item.tagColor
         imageData = item.imageData
     }
 
@@ -221,7 +199,6 @@ struct GunplaFormView: View {
             item.releaseDate = hasReleaseDate ? releaseDate : nil
             item.restockDate = hasRestockDate ? restockDate : nil
             item.priority = priority
-            item.tagColor = tagColor
             repository.updateItem()
         } else {
             let item = GunplaItem(
@@ -232,8 +209,7 @@ struct GunplaFormView: View {
                 url: urlText.isEmpty ? nil : urlText,
                 releaseDate: hasReleaseDate ? releaseDate : nil,
                 restockDate: hasRestockDate ? restockDate : nil,
-                priority: priority,
-                tagColor: tagColor
+                priority: priority
             )
             repository.insertItem(item)
         }

@@ -17,11 +17,14 @@ struct GunplaItemDetailView: View {
     @State private var showingDeleteConfirm = false
 
     private let priorityLabels = ["低", "中", "高", "最高"]
-    private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
 
-    private var tagColor: Color {
-        guard item.tagColor >= 0 && item.tagColor < tagColors.count else { return .gray }
-        return tagColors[item.tagColor]
+    private var priorityColor: Color {
+        switch item.priority {
+        case 3: return .red
+        case 2: return .orange
+        case 1: return .blue
+        default: return .gray
+        }
     }
 
     var body: some View {
@@ -30,7 +33,7 @@ struct GunplaItemDetailView: View {
                 Section {
                     HStack {
                         Rectangle()
-                            .fill(tagColor)
+                            .fill(priorityColor)
                             .frame(width: 6)
                             .clipShape(RoundedRectangle(cornerRadius: 3))
                         VStack(alignment: .leading, spacing: 4) {

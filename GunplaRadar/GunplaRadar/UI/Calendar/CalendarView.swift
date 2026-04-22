@@ -50,7 +50,7 @@ struct CalendarView: View {
 
                 // カレンダーグリッド
                 let days = daysInMonth()
-                let restockColors = viewModel.restockTagColors()
+                let restockColors = viewModel.restockPriorityColors()
                 let patrolSet = viewModel.patrolDates()
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 4) {
@@ -181,13 +181,6 @@ struct CalendarView: View {
 private struct CalendarItemRow: View {
     let item: GunplaItem
 
-    private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
-
-    private var tagColor: Color {
-        guard item.tagColor >= 0 && item.tagColor < tagColors.count else { return .gray }
-        return tagColors[item.tagColor]
-    }
-
     private var priorityColor: Color {
         switch item.priority {
         case 3: return .red
@@ -200,7 +193,7 @@ private struct CalendarItemRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Rectangle()
-                .fill(tagColor)
+                .fill(priorityColor)
                 .frame(width: 4)
                 .clipShape(RoundedRectangle(cornerRadius: 2))
 
@@ -243,7 +236,14 @@ private struct CalendarDayCell: View {
     let hasPatrol: Bool
     let isToday: Bool
 
-    private let tagColorList: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
+    private func priorityColor(_ priority: Int) -> Color {
+        switch priority {
+        case 3: return .red
+        case 2: return .orange
+        case 1: return .blue
+        default: return .gray
+        }
+    }
 
     private var dayNumber: Int {
         Calendar.current.component(.day, from: date)
@@ -262,11 +262,11 @@ private struct CalendarDayCell: View {
                     Circle()
                         .stroke(Color.red, lineWidth: hasRestock ? 2 : 0)
                 )
-            // タグカラーのドット（最大3つ表示）
+            // 優先度カラーのドット（最大3つ表示）
             HStack(spacing: 2) {
-                ForEach(Array(restockTagColors.prefix(3).enumerated()), id: \.offset) { _, colorIndex in
+                ForEach(Array(restockTagColors.prefix(3).enumerated()), id: \.offset) { _, priority in
                     Circle()
-                        .fill(tagColorList[safe: colorIndex] ?? .orange)
+                        .fill(priorityColor(priority))
                         .frame(width: 5, height: 5)
                 }
                 if restockTagColors.isEmpty {
