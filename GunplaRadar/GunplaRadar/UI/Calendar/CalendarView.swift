@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CalendarView: View {
     @State private var viewModel: CalendarViewModel
-    @State private var showingStockDiff = false
+    @State private var stockDiffItem: GunplaItem? = nil
 
     init(repository: GunplaRepository) {
         _viewModel = State(initialValue: CalendarViewModel(repository: repository))
@@ -82,15 +82,8 @@ struct CalendarView: View {
             }
             .navigationTitle("カレンダー")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showingStockDiff = true }) {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-            .sheet(isPresented: $showingStockDiff, onDismiss: { viewModel.loadData() }) {
-                StockDiffView(viewModel: viewModel)
+            .sheet(item: $stockDiffItem, onDismiss: { viewModel.loadData() }) { item in
+                StockDiffView(viewModel: viewModel, preselectedItem: item)
             }
             .onAppear { viewModel.loadData() }
             .navigationDestination(for: GunplaItem.self) { item in
@@ -119,10 +112,30 @@ struct CalendarView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(restockItems, id: \.id) { item in
-                        NavigationLink(value: item) {
-                            CalendarItemRow(item: item)
+                        HStack(spacing: 0) {
+                            NavigationLink(value: item) {
+                                CalendarItemRow(item: item)
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.plain)
+
+                            Button {
+                                stockDiffItem = item
+                            } label: {
+                                VStack(spacing: 3) {
+                                    Image(systemName: "clock")
+                                        .font(.subheadline)
+                                    Text("品出し記録")
+                                        .font(.caption2.bold())
+                                }
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .background(Color.orange)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .padding(.trailing, 12)
                         }
-                        .buttonStyle(.plain)
                     }
                     ForEach(plans, id: \.id) { plan in
                         Label("巡回予定", systemImage: "figure.walk")

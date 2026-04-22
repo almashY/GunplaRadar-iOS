@@ -10,6 +10,7 @@ import SwiftUI
 struct StockDiffView: View {
     @Environment(\.dismiss) private var dismiss
     let viewModel: CalendarViewModel
+    var preselectedItem: GunplaItem? = nil
 
     @State private var selectedItemId: String = ""
     @State private var selectedStoreId: String = ""
@@ -48,22 +49,32 @@ struct StockDiffView: View {
             .onAppear {
                 items = viewModel.repositoryRef.fetchItemsWithRestockDate()
                 stores = viewModel.repositoryRef.fetchAllStores()
+                if let item = preselectedItem {
+                    selectedItemId = item.id
+                }
             }
         }
     }
 
     private var itemSection: some View {
-        Section("ガンプラ選択") {
-            Picker("アイテム", selection: $selectedItemId) {
-                Text("選択してください").tag("")
-                ForEach(items, id: \.id) { item in
-                    Text(item.name).tag(item.id)
+        Section("ガンプラ") {
+            if let item = preselectedItem {
+                LabeledContent("アイテム", value: item.name)
+                if let rd = item.restockDate {
+                    LabeledContent("再販予定日", value: rd.formatted(.dateTime.year().month().day()))
                 }
-            }
-            if let item = selectedItem, let rd = item.restockDate {
-                Text("再販予定: \(rd.formatted(.dateTime.year().month().day()))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            } else {
+                Picker("アイテム", selection: $selectedItemId) {
+                    Text("選択してください").tag("")
+                    ForEach(items, id: \.id) { item in
+                        Text(item.name).tag(item.id)
+                    }
+                }
+                if let item = selectedItem, let rd = item.restockDate {
+                    Text("再販予定: \(rd.formatted(.dateTime.year().month().day()))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
