@@ -81,6 +81,7 @@ struct CalendarView: View {
                 Spacer()
             }
             .navigationTitle("カレンダー")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { showingStockDiff = true }) {
@@ -92,6 +93,13 @@ struct CalendarView: View {
                 StockDiffView(viewModel: viewModel)
             }
             .onAppear { viewModel.loadData() }
+            .navigationDestination(for: GunplaItem.self) { item in
+                GunplaItemDetailView(
+                    item: item,
+                    repository: viewModel.repositoryRef,
+                    onDelete: { viewModel.loadData() }
+                )
+            }
         }
     }
 
@@ -111,9 +119,10 @@ struct CalendarView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(restockItems, id: \.id) { item in
-                        Label(item.name, systemImage: "tag")
-                            .font(.caption)
-                            .padding(.horizontal)
+                        NavigationLink(value: item) {
+                            CalendarItemRow(item: item)
+                        }
+                        .buttonStyle(.plain)
                     }
                     ForEach(plans, id: \.id) { plan in
                         Label("巡回予定", systemImage: "figure.walk")
@@ -122,7 +131,7 @@ struct CalendarView: View {
                     }
                 }
             }
-            .frame(maxHeight: 100)
+            .frame(maxHeight: 200)
         }
     }
 
@@ -154,6 +163,66 @@ struct CalendarView: View {
     }
 }
 
+// MARK: - カレンダー用アイテム行
+
+private struct CalendarItemRow: View {
+    let item: GunplaItem
+
+    private let tagColors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple]
+
+    private var tagColor: Color {
+        guard item.tagColor >= 0 && item.tagColor < tagColors.count else { return .gray }
+        return tagColors[item.tagColor]
+    }
+
+    private var priorityColor: Color {
+        switch item.priority {
+        case 3: return .red
+        case 2: return .orange
+        case 1: return .blue
+        default: return .gray
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Rectangle()
+                .fill(tagColor)
+                .frame(width: 4)
+                .clipShape(RoundedRectangle(cornerRadius: 2))
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(item.name)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Circle()
+                        .fill(priorityColor)
+                        .frame(width: 8, height: 8)
+                }
+                Text(item.grade)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let data = item.imageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 40, height: 40)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 6)
+        .background(Color(.systemBackground))
+    }
+}
+
+// MARK: - カレンダー日付セル
+
 private struct CalendarDayCell: View {
     let date: Date
     let isSelected: Bool
@@ -169,12 +238,17 @@ private struct CalendarDayCell: View {
 
     var body: some View {
         VStack(spacing: 2) {
+            let hasRestock = !restockTagColors.isEmpty
             Text("\(dayNumber)")
                 .font(hasPatrol ? .callout.bold() : .callout)
                 .frame(width: 32, height: 32)
                 .background(isSelected ? Color.accentColor : isToday ? Color.accentColor.opacity(0.2) : Color.clear)
-                .foregroundStyle(isSelected ? .white : .primary)
+                .foregroundStyle(isSelected ? .white : hasRestock ? .red : .primary)
                 .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(Color.red, lineWidth: hasRestock ? 2 : 0)
+                )
             // タグカラーのドット（最大3つ表示）
             HStack(spacing: 2) {
                 ForEach(Array(restockTagColors.prefix(3).enumerated()), id: \.offset) { _, colorIndex in
