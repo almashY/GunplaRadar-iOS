@@ -32,6 +32,10 @@ class PatrolViewModel {
         stores.first { $0.id == storeId }?.name ?? "不明な店舗"
     }
 
+    func store(for storeId: String) -> GunplaStore? {
+        stores.first { $0.id == storeId }
+    }
+
     func targetItems(for plan: PatrolPlan) -> [GunplaItem] {
         plan.targetItemIdList.compactMap { id in items.first { $0.id == id } }
     }

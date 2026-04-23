@@ -275,6 +275,12 @@ private struct StoreDetailSheet: View {
     let viewModel: StoreViewModel
     @Environment(\.dismiss) private var dismiss
 
+    private let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f
+    }()
+
     var body: some View {
         NavigationStack {
             List {
@@ -287,6 +293,22 @@ private struct StoreDetailSheet: View {
                         LabeledContent("平均品出し遅延", value: String(format: "%.1f 時間", store.averageDelayHours))
                     }
                 }
+
+                Section("品出し時刻") {
+                    let times = store.stockTimes ?? []
+                    if times.isEmpty {
+                        Text("記録なし")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(times.indices, id: \.self) { index in
+                            Label(timeFormatter.string(from: times[index]), systemImage: "clock")
+                        }
+                    }
+                    NavigationLink(destination: StoreStockTimeView(store: store, repository: viewModel.repositoryRef)) {
+                        Label("編集", systemImage: "pencil")
+                    }
+                }
+
                 Section {
                     Button(action: { viewModel.toggleFavorite(store) }) {
                         Label(

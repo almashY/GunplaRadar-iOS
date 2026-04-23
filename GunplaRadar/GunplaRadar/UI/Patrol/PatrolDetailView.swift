@@ -16,7 +16,13 @@ struct PatrolDetailView: View {
     var body: some View {
         List {
             Section("巡回情報") {
-                LabeledContent("店舗", value: viewModel.storeName(for: plan.storeId))
+                if let store = viewModel.store(for: plan.storeId) {
+                    NavigationLink(destination: StoreStockTimeView(store: store, repository: viewModel.repositoryRef)) {
+                        LabeledContent("店舗", value: store.name)
+                    }
+                } else {
+                    LabeledContent("店舗", value: viewModel.storeName(for: plan.storeId))
+                }
                 LabeledContent("日付", value: plan.date.formatted(.dateTime.year().month().day()))
                 LabeledContent("時間", value: plan.time.formatted(.dateTime.hour().minute()))
                 LabeledContent("通知", value: plan.notifyEnabled ? "有効" : "無効")

@@ -34,9 +34,11 @@ struct StoreListView: View {
             } else {
                 List {
                     ForEach(viewModel.filteredStores, id: \.id) { store in
-                        StoreRow(store: store, onToggleFavorite: {
-                            viewModel.toggleFavorite(store)
-                        })
+                        NavigationLink(destination: StoreStockTimeView(store: store, repository: viewModel.repositoryRef)) {
+                            StoreRow(store: store, onToggleFavorite: {
+                                viewModel.toggleFavorite(store)
+                            })
+                        }
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 viewModel.deleteStore(store)
