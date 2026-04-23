@@ -48,6 +48,7 @@ struct PatrolDetailView: View {
                     showingDeleteConfirm = true
                 } label: {
                     Label("この巡回予定を削除", systemImage: "trash")
+                            .foregroundStyle(.red)
                 }
             }
         }

@@ -306,6 +306,7 @@ private struct StoreDetailSheet: View {
                     }
                     NavigationLink(destination: StoreStockTimeView(store: store, repository: viewModel.repositoryRef)) {
                         Label("編集", systemImage: "pencil")
+                            .foregroundStyle(.blue)
                     }
                 }
 
@@ -321,6 +322,7 @@ private struct StoreDetailSheet: View {
                         dismiss()
                     }) {
                         Label("削除", systemImage: "trash")
+                            .foregroundStyle(.red)
                     }
                 }
             }

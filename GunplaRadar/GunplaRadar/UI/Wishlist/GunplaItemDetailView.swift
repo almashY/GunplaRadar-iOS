@@ -100,6 +100,7 @@ struct GunplaItemDetailView: View {
                         showingDeleteConfirm = true
                     } label: {
                         Label("削除", systemImage: "trash")
+                            .foregroundStyle(.red)
                     }
                 }
             }

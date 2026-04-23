@@ -34,6 +34,16 @@ struct StoreStockTimeView: View {
                         Text(timeFormatter.string(from: times[index]))
                             .font(.body.monospacedDigit())
                     }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            var t = store.stockTimes ?? []
+                            t.remove(at: index)
+                            store.stockTimes = t
+                            repository.updateStore()
+                        } label: {
+                            Label("削除", systemImage: "trash")
+                        }
+                    }
                 }
                 .onDelete { offsets in
                     var t = store.stockTimes ?? []

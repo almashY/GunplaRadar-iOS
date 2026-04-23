@@ -156,6 +156,7 @@ struct GunplaFormView: View {
                 selectedPhotoItem = nil
             } label: {
                 Label("画像を削除", systemImage: "trash")
+                    .foregroundStyle(.red)
             }
         }
     }

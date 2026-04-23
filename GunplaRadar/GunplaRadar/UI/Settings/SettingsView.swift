@@ -27,6 +27,7 @@ struct SettingsView: View {
                         showingDeleteConfirm = true
                     } label: {
                         Label("すべてのデータを削除", systemImage: "trash")
+                            .foregroundStyle(.red)
                     }
                 }
 
