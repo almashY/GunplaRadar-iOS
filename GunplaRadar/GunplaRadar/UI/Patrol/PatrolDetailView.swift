@@ -12,6 +12,7 @@ struct PatrolDetailView: View {
     let plan: PatrolPlan
     let viewModel: PatrolViewModel
     @State private var showingDeleteConfirm = false
+    @State private var showingEdit = false
 
     var body: some View {
         List {
@@ -58,6 +59,14 @@ struct PatrolDetailView: View {
         }
         .navigationTitle("巡回詳細")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("編集") { showingEdit = true }
+            }
+        }
+        .sheet(isPresented: $showingEdit) {
+            PatrolFormView(viewModel: viewModel, editingPlan: plan)
+        }
         .confirmationDialog("削除しますか？", isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
             Button("削除", role: .destructive) {
                 viewModel.deletePlan(plan)

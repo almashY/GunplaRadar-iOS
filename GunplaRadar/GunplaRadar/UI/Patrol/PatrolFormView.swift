@@ -10,12 +10,20 @@ import SwiftUI
 struct PatrolFormView: View {
     @Environment(\.dismiss) private var dismiss
     let viewModel: PatrolViewModel
+    let editingPlan: PatrolPlan?
 
     @State private var selectedStoreId: String = ""
     @State private var patrolDate: Date = Date()
     @State private var patrolTime: Date = Date()
     @State private var selectedItemIds: Set<String> = []
     @State private var selectedOffsets: Set<Int> = []
+
+    init(viewModel: PatrolViewModel, editingPlan: PatrolPlan? = nil) {
+        self.viewModel = viewModel
+        self.editingPlan = editingPlan
+    }
+
+    private var isEditing: Bool { editingPlan != nil }
 
     private var canSave: Bool {
         viewModel.stores.contains(where: { $0.id == selectedStoreId })
@@ -29,8 +37,9 @@ struct PatrolFormView: View {
                 itemSection
                 notifySection
             }
-            .navigationTitle("巡回予定作成")
+            .navigationTitle(isEditing ? "巡回予定を編集" : "巡回予定作成")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear { loadIfEditing() }
             .onChange(of: patrolDate) { _, newDate in
                 let validIds = Set(viewModel.filteredItems(for: newDate).map { $0.id })
                 selectedItemIds = selectedItemIds.intersection(validIds)
@@ -44,6 +53,15 @@ struct PatrolFormView: View {
                 }
             }
         }
+    }
+
+    private func loadIfEditing() {
+        guard let plan = editingPlan else { return }
+        selectedStoreId = plan.storeId
+        patrolDate = plan.date
+        patrolTime = plan.time
+        selectedItemIds = Set(plan.targetItemIdList)
+        selectedOffsets = Set(plan.notifyOffsetList)
     }
 
     private var storeSection: some View {
@@ -112,13 +130,24 @@ struct PatrolFormView: View {
 
     private func save() {
         guard canSave else { return }
-        viewModel.insertPlan(
-            date: patrolDate,
-            time: patrolTime,
-            storeId: selectedStoreId,
-            targetItemIds: Array(selectedItemIds),
-            notifyOffsets: Array(selectedOffsets)
-        )
+        if let plan = editingPlan {
+            viewModel.updatePlan(
+                plan,
+                date: patrolDate,
+                time: patrolTime,
+                storeId: selectedStoreId,
+                targetItemIds: Array(selectedItemIds),
+                notifyOffsets: Array(selectedOffsets)
+            )
+        } else {
+            viewModel.insertPlan(
+                date: patrolDate,
+                time: patrolTime,
+                storeId: selectedStoreId,
+                targetItemIds: Array(selectedItemIds),
+                notifyOffsets: Array(selectedOffsets)
+            )
+        }
         dismiss()
     }
 }
