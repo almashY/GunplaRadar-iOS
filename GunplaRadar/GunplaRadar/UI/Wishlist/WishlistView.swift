@@ -132,8 +132,8 @@ private struct GunplaItemCard: View {
                         Text("¥\(price)")
                             .font(.caption)
                     }
-                    if let releaseDate = item.releaseDate {
-                        Text(releaseDate.formatted(.dateTime.year().month().day()))
+                    if let restockDate = item.restockDate {
+                        Text(restockDate.formatted(.dateTime.year().month().day()))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
