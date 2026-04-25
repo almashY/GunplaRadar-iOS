@@ -60,23 +60,24 @@ class PatrolViewModel {
         }
     }
 
-    func insertPlan(date: Date, time: Date, storeId: String, targetItemIds: [String], notifyEnabled: Bool) {
+    func insertPlan(date: Date, time: Date, storeId: String, targetItemIds: [String], notifyOffsets: [Int]) {
+        let offsetsStr = notifyOffsets.sorted().map(String.init).joined(separator: ",")
         let plan = PatrolPlan(
             date: date,
             time: time,
             storeId: storeId,
             targetItemIds: targetItemIds.joined(separator: ","),
-            notifyEnabled: notifyEnabled
+            notifyOffsets: offsetsStr.isEmpty ? nil : offsetsStr
         )
         repository.insertPlan(plan)
-        if notifyEnabled, let store = stores.first(where: { $0.id == storeId }) {
-            NotificationManager.shared.schedulePatrolNotification(plan: plan, storeName: store.name)
+        if !notifyOffsets.isEmpty, let store = stores.first(where: { $0.id == storeId }) {
+            NotificationManager.shared.schedulePatrolNotifications(plan: plan, storeName: store.name)
         }
         loadData()
     }
 
     func deletePlan(_ plan: PatrolPlan) {
-        NotificationManager.shared.cancelNotification(planId: plan.id)
+        NotificationManager.shared.cancelNotifications(planId: plan.id)
         repository.deletePlan(plan)
         loadData()
     }

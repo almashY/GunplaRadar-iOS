@@ -15,7 +15,7 @@ struct PatrolFormView: View {
     @State private var patrolDate: Date = Date()
     @State private var patrolTime: Date = Date()
     @State private var selectedItemIds: Set<String> = []
-    @State private var notifyEnabled: Bool = true
+    @State private var selectedOffsets: Set<Int> = []
 
     private var canSave: Bool {
         viewModel.stores.contains(where: { $0.id == selectedStoreId })
@@ -95,9 +95,18 @@ struct PatrolFormView: View {
         }
     }
 
+    private var notifyLabel: String {
+        if selectedOffsets.isEmpty { return "設定なし" }
+        return selectedOffsets.sorted().map { min in
+            min >= 60 ? "\(min / 60)時間前" : "\(min)分前"
+        }.joined(separator: "・")
+    }
+
     private var notifySection: some View {
-        Section("通知") {
-            Toggle("1時間前に通知", isOn: $notifyEnabled)
+        Section {
+            NavigationLink(destination: PatrolNotificationSettingView(selectedOffsets: $selectedOffsets)) {
+                LabeledContent("通知アラーム", value: notifyLabel)
+            }
         }
     }
 
@@ -108,7 +117,7 @@ struct PatrolFormView: View {
             time: patrolTime,
             storeId: selectedStoreId,
             targetItemIds: Array(selectedItemIds),
-            notifyEnabled: notifyEnabled
+            notifyOffsets: Array(selectedOffsets)
         )
         dismiss()
     }

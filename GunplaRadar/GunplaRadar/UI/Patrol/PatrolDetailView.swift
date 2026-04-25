@@ -25,7 +25,11 @@ struct PatrolDetailView: View {
                 }
                 LabeledContent("日付", value: plan.date.formatted(.dateTime.year().month().day()))
                 LabeledContent("時間", value: plan.time.formatted(.dateTime.hour().minute()))
-                LabeledContent("通知", value: plan.notifyEnabled ? "有効" : "無効")
+                LabeledContent("通知アラーム", value: plan.notifyOffsetList.isEmpty ? "設定なし" :
+                    plan.notifyOffsetList.map { min in
+                        min >= 60 ? "\(min / 60)時間前" : "\(min)分前"
+                    }.joined(separator: "・")
+                )
             }
 
             let targets = viewModel.targetItems(for: plan)

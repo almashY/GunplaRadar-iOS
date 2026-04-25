@@ -17,38 +17,53 @@ class NotificationManager {
         try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
     }
 
-    func schedulePatrolNotification(plan: PatrolPlan, storeName: String) {
+    func schedulePatrolNotifications(plan: PatrolPlan, storeName: String) {
+        cancelNotifications(planId: plan.id)
+
+        let offsets = plan.notifyOffsetList
+        guard !offsets.isEmpty else { return }
+
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: plan.date)
         let timeComponents = calendar.dateComponents([.hour, .minute], from: plan.time)
 
         var combined = DateComponents()
-        combined.year = dateComponents.year
+        combined.year  = dateComponents.year
         combined.month = dateComponents.month
-        combined.day = dateComponents.day
-        combined.hour = timeComponents.hour
+        combined.day   = dateComponents.day
+        combined.hour  = timeComponents.hour
         combined.minute = timeComponents.minute
 
         guard let patrolDate = calendar.date(from: combined) else { return }
-        let notifyDate = patrolDate.addingTimeInterval(-3600) // 1時間前
 
-        guard notifyDate > Date() else { return }
-
-        let content = UNMutableNotificationContent()
-        content.title = "ガンプラ巡回予定"
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        content.body = "\(formatter.string(from: patrolDate)) に \(storeName) への巡回予定"
-        content.sound = .default
 
-        let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: notifyDate)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
-        let request = UNNotificationRequest(identifier: "patrol_\(plan.id)", content: content, trigger: trigger)
+        for (index, offsetMinutes) in offsets.enumerated() {
+            let notifyDate = patrolDate.addingTimeInterval(TimeInterval(-offsetMinutes * 60))
+            guard notifyDate > Date() else { continue }
 
-        UNUserNotificationCenter.current().add(request)
+            let content = UNMutableNotificationContent()
+            content.title = "ガンプラ巡回予定"
+            let label = offsetMinutes >= 60 ? "\(offsetMinutes / 60)時間前" : "\(offsetMinutes)分前"
+            content.body = "\(label)：\(formatter.string(from: patrolDate)) に \(storeName) への巡回予定"
+            content.sound = .default
+
+            let triggerComponents = calendar.dateComponents(
+                [.year, .month, .day, .hour, .minute], from: notifyDate
+            )
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "patrol_\(plan.id)_\(index)",
+                content: content,
+                trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request)
+        }
     }
 
-    func cancelNotification(planId: String) {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["patrol_\(planId)"])
+    func cancelNotifications(planId: String) {
+        let ids = (0..<3).map { "patrol_\(planId)_\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
 }
