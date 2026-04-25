@@ -102,11 +102,13 @@ struct GunplaFormView: View {
             if hasReleaseDate {
                 DatePicker("", selection: $releaseDate, displayedComponents: .date)
                     .labelsHidden()
+                    .environment(\.locale, Locale(identifier: "ja_JP"))
             }
             Toggle("再販日", isOn: $hasRestockDate)
             if hasRestockDate {
                 DatePicker("", selection: $restockDate, displayedComponents: .date)
                     .labelsHidden()
+                    .environment(\.locale, Locale(identifier: "ja_JP"))
             }
         }
     }

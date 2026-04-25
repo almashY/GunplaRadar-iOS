@@ -133,7 +133,7 @@ private struct GunplaItemCard: View {
                             .font(.caption)
                     }
                     if let restockDate = item.restockDate {
-                        Text(restockDate.formatted(.dateTime.year().month().day()))
+                        Text(restockDate.japaneseDate)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

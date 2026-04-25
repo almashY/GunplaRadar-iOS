@@ -24,8 +24,8 @@ struct PatrolDetailView: View {
                 } else {
                     LabeledContent("店舗", value: viewModel.storeName(for: plan.storeId))
                 }
-                LabeledContent("日付", value: plan.date.formatted(.dateTime.year().month().day()))
-                LabeledContent("時間", value: plan.time.formatted(.dateTime.hour().minute()))
+                LabeledContent("日付", value: plan.date.japaneseDate)
+                LabeledContent("時間", value: plan.time.japaneseTime)
                 LabeledContent("通知アラーム", value: plan.notifyOffsetList.isEmpty ? "設定なし" :
                     plan.notifyOffsetList.map { min in
                         min >= 60 ? "\(min / 60)時間前" : "\(min)分前"

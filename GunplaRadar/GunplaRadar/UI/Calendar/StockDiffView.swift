@@ -61,7 +61,7 @@ struct StockDiffView: View {
             if let item = preselectedItem {
                 LabeledContent("アイテム", value: item.name)
                 if let rd = item.restockDate {
-                    LabeledContent("再販予定日", value: rd.formatted(.dateTime.year().month().day()))
+                    LabeledContent("再販予定日", value: rd.japaneseDate)
                 }
             } else {
                 Picker("アイテム", selection: $selectedItemId) {
@@ -71,7 +71,7 @@ struct StockDiffView: View {
                     }
                 }
                 if let item = selectedItem, let rd = item.restockDate {
-                    Text("再販予定: \(rd.formatted(.dateTime.year().month().day()))")
+                    Text("再販予定: \(rd.japaneseDate)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -93,6 +93,7 @@ struct StockDiffView: View {
     private var dateSection: some View {
         Section("実際の品出し日") {
             DatePicker("品出し日", selection: $actualStockDate, displayedComponents: .date)
+                .environment(\.locale, Locale(identifier: "ja_JP"))
         }
     }
 

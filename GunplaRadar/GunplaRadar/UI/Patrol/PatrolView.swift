@@ -77,8 +77,8 @@ private struct PatrolPlanRow: View {
                 Text(storeName)
                     .font(.headline)
                 HStack {
-                    Text(plan.date.formatted(.dateTime.year().month().day()))
-                    Text(plan.time.formatted(.dateTime.hour().minute()))
+                    Text(plan.date.japaneseDate)
+                    Text(plan.time.japaneseTime)
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

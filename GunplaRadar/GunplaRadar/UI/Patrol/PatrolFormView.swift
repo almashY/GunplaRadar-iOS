@@ -78,7 +78,9 @@ struct PatrolFormView: View {
     private var dateSection: some View {
         Section("日時") {
             DatePicker("日付", selection: $patrolDate, displayedComponents: .date)
+                .environment(\.locale, Locale(identifier: "ja_JP"))
             DatePicker("時間", selection: $patrolTime, displayedComponents: .hourAndMinute)
+                .environment(\.locale, Locale(identifier: "ja_JP"))
         }
     }
 

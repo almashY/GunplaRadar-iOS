@@ -113,7 +113,7 @@ struct CalendarView: View {
     private func selectedDateDetail(date: Date) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
-            Text(date.formatted(.dateTime.year().month().day()))
+            Text(date.japaneseDate)
                 .font(.subheadline.bold())
                 .padding(.horizontal)
 

@@ -54,13 +54,13 @@ struct GunplaItemDetailView: View {
                     }
                     LabeledContent("優先度", value: priorityLabels[safe: item.priority] ?? "-")
                     if let releaseDate = item.releaseDate {
-                        LabeledContent("発売日", value: releaseDate.formatted(.dateTime.year().month().day()))
+                        LabeledContent("発売日", value: releaseDate.japaneseDate)
                     }
                     if let restockDate = item.restockDate {
-                        LabeledContent("再販日", value: restockDate.formatted(.dateTime.year().month().day()))
+                        LabeledContent("再販日", value: restockDate.japaneseDate)
                     }
                     if let purchasedDate = item.purchasedDate {
-                        LabeledContent("購入日", value: purchasedDate.formatted(.dateTime.year().month().day()))
+                        LabeledContent("購入日", value: purchasedDate.japaneseDate)
                     }
                 }
 
