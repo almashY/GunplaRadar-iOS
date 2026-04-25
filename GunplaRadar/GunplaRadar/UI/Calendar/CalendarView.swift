@@ -113,15 +113,24 @@ struct CalendarView: View {
     private func selectedDateDetail(date: Date) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
-            Text(date.japaneseDate)
-                .font(.subheadline.bold())
-                .padding(.horizontal)
 
             let restockItems = viewModel.itemsWithRestock.filter {
                 guard let rd = $0.restockDate else { return false }
                 return calendar.isDate(rd, inSameDayAs: date)
             }
             let plans = viewModel.patrolPlans.filter { calendar.isDate($0.date, inSameDayAs: date) }
+
+            HStack {
+                Text(date.japaneseDate)
+                    .font(.subheadline.bold())
+                Spacer()
+                if !plans.isEmpty {
+                    Label("巡回予定", systemImage: "figure.walk")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                }
+            }
+            .padding(.horizontal)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
@@ -150,11 +159,6 @@ struct CalendarView: View {
                             }
                             .padding(.trailing, 12)
                         }
-                    }
-                    ForEach(plans, id: \.id) { plan in
-                        Label("巡回予定", systemImage: "figure.walk")
-                            .font(.caption)
-                            .padding(.horizontal)
                     }
                 }
             }
