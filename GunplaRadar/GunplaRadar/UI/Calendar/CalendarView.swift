@@ -10,6 +10,7 @@ import SwiftUI
 struct CalendarView: View {
     @State private var viewModel: CalendarViewModel
     @State private var stockDiffItem: GunplaItem? = nil
+    @AppStorage("restock_priority_mask") private var priorityMask: Int = 15
 
     init(repository: GunplaRepository) {
         _viewModel = State(initialValue: CalendarViewModel(repository: repository))
@@ -72,6 +73,19 @@ struct CalendarView: View {
                     }
                 }
                 .padding(.horizontal, 8)
+
+                // 月合計金額
+                if let total = viewModel.monthlyTotal(priorityMask: priorityMask) {
+                    HStack {
+                        Spacer()
+                        Text("今月の購入予定金額 ¥\(total)")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                            .padding(.trailing, 8)
+                            .padding(.top, 4)
+                            .padding(.bottom, 4)
+                    }
+                }
 
                 // 選択日のアイテム
                 if let selected = viewModel.selectedDate {

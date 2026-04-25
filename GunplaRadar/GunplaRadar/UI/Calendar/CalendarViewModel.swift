@@ -80,6 +80,20 @@ class CalendarViewModel {
         return Set(patrolPlans.map { formatter.string(from: $0.date) })
     }
 
+    /// 当月の再販アイテムのうち選択された優先度（ビットマスク）に一致する合計金額を返す（価格未設定アイテムは除外）
+    func monthlyTotal(priorityMask: Int) -> Int? {
+        let cal = Calendar.current
+        let items = itemsWithRestock.filter { item in
+            guard let rd = item.restockDate, let _ = item.price else { return false }
+            let year = cal.component(.year, from: rd)
+            let month = cal.component(.month, from: rd)
+            let bit = 1 << item.priority
+            return year == currentYear && month == currentMonth && (priorityMask & bit != 0)
+        }
+        guard !items.isEmpty else { return nil }
+        return items.compactMap { $0.price }.reduce(0, +)
+    }
+
     func insertStockDelayRecord(item: GunplaItem, store: GunplaStore, actualStockDate: Date) {
         guard let restockDate = item.restockDate else { return }
         let delayHours = actualStockDate.timeIntervalSince(restockDate) / 3600.0
