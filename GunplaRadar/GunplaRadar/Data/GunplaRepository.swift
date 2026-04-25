@@ -185,6 +185,12 @@ class GunplaRepository {
         save()
     }
 
+    func deleteRecords(storeId: String) {
+        let records = fetchRecords(storeId: storeId)
+        records.forEach { modelContext.delete($0) }
+        save()
+    }
+
     func deleteAllRecords() {
         let records = fetchAllRecords()
         records.forEach { modelContext.delete($0) }
