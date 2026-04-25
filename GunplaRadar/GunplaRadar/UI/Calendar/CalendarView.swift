@@ -11,6 +11,7 @@ struct CalendarView: View {
     @State private var viewModel: CalendarViewModel
     @State private var stockDiffItem: GunplaItem? = nil
     @AppStorage("restock_priority_mask") private var priorityMask: Int = 15
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     init(repository: GunplaRepository) {
         _viewModel = State(initialValue: CalendarViewModel(repository: repository))
@@ -18,84 +19,46 @@ struct CalendarView: View {
 
     private let weekdays = ["日", "月", "火", "水", "木", "金", "土"]
     private let calendar = Calendar.current
+    private var isLandscape: Bool { verticalSizeClass == .compact }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // 月ナビゲーション
-                HStack {
-                    Button(action: { viewModel.previousMonth() }) {
-                        Image(systemName: "chevron.left")
-                    }
-                    Spacer()
-                    Text("\(viewModel.currentYear)年\(viewModel.currentMonth)月")
-                        .font(.headline)
-                    Spacer()
-                    Button(action: { viewModel.nextMonth() }) {
-                        Image(systemName: "chevron.right")
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-
-                // 曜日ヘッダー
-                HStack {
-                    ForEach(weekdays, id: \.self) { day in
-                        Text(day)
-                            .font(.caption)
+            Group {
+                if isLandscape {
+                    HStack(spacing: 0) {
+                        calendarPanel
                             .frame(maxWidth: .infinity)
-                            .foregroundStyle(day == "日" ? .red : day == "土" ? .blue : .primary)
-                    }
-                }
-                .padding(.horizontal, 8)
-
-                // カレンダーグリッド
-                let days = daysInMonth()
-                let restockColors = viewModel.restockPriorityColors()
-                let patrolSet = viewModel.patrolDates()
-
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 4) {
-                    ForEach(days, id: \.self) { date in
-                        if let date = date {
-                            CalendarDayCell(
-                                date: date,
-                                isSelected: viewModel.selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false,
-                                restockTagColors: restockColors[dateKey(date)] ?? [],
-                                hasPatrol: patrolSet.contains(dateKey(date)),
-                                isToday: calendar.isDateInToday(date)
-                            )
-                            .onTapGesture {
-                                viewModel.selectedDate = date
-                            }
+                            .padding(.top, 14)
+                        Divider()
+                        if let selected = viewModel.selectedDate {
+                            selectedDateDetail(date: selected)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 14)
                         } else {
-                            Color.clear.frame(height: 44)
+                            VStack {
+                                Spacer()
+                                Text("日付を選択してください")
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 14)
                         }
                     }
-                }
-                .padding(.horizontal, 8)
-
-                // 月合計金額
-                if let total = viewModel.monthlyTotal(priorityMask: priorityMask) {
-                    HStack {
-                        Spacer()
-                        Text("今月の購入予定金額 ¥\(total)")
-                            .font(.caption.bold())
-                            .foregroundStyle(.secondary)
-                            .padding(.trailing, 12)
-                            .padding(.top, 4)
-                            .padding(.bottom, 4)
-                    }
-                }
-
-                // 選択日のアイテム
-                if let selected = viewModel.selectedDate {
-                    selectedDateDetail(date: selected)
                 } else {
-                    Spacer()
+                    VStack(spacing: 0) {
+                        calendarPanel
+                        if let selected = viewModel.selectedDate {
+                            selectedDateDetail(date: selected)
+                        } else {
+                            Spacer()
+                        }
+                    }
                 }
             }
             .navigationTitle("カレンダー")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(isLandscape ? .hidden : .visible, for: .navigationBar)
             .sheet(item: $stockDiffItem, onDismiss: { viewModel.loadData() }) { item in
                 StockDiffView(viewModel: viewModel, preselectedItem: item)
             }
@@ -110,9 +73,82 @@ struct CalendarView: View {
         }
     }
 
+    private var calendarPanel: some View {
+        VStack(spacing: 0) {
+            // 月ナビゲーション
+            HStack {
+                Button(action: { viewModel.previousMonth() }) {
+                    Image(systemName: "chevron.left")
+                }
+                Spacer()
+                Text("\(viewModel.currentYear)年\(viewModel.currentMonth)月")
+                    .font(.headline)
+                Spacer()
+                Button(action: { viewModel.nextMonth() }) {
+                    Image(systemName: "chevron.right")
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+
+            // 曜日ヘッダー
+            HStack {
+                ForEach(weekdays, id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .foregroundStyle(day == "日" ? .red : day == "土" ? .blue : .primary)
+                }
+            }
+            .padding(.horizontal, 8)
+
+            // カレンダーグリッド
+            let days = daysInMonth()
+            let restockColors = viewModel.restockPriorityColors()
+            let patrolSet = viewModel.patrolDates()
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 4) {
+                ForEach(days, id: \.self) { date in
+                    if let date = date {
+                        CalendarDayCell(
+                            date: date,
+                            isSelected: viewModel.selectedDate.map { calendar.isDate($0, inSameDayAs: date) } ?? false,
+                            restockTagColors: restockColors[dateKey(date)] ?? [],
+                            hasPatrol: patrolSet.contains(dateKey(date)),
+                            isToday: calendar.isDateInToday(date)
+                        )
+                        .onTapGesture {
+                            viewModel.selectedDate = date
+                        }
+                    } else {
+                        Color.clear.frame(height: 44)
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+
+            // 月合計金額
+            if let total = viewModel.monthlyTotal(priorityMask: priorityMask) {
+                HStack {
+                    Spacer()
+                    Text("今月の購入予定金額 ¥\(total)")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                        .padding(.trailing, 12)
+                        .padding(.top, 4)
+                        .padding(.bottom, 4)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+    }
+
     private func selectedDateDetail(date: Date) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Divider()
+            if !isLandscape {
+                Divider()
+            }
 
             let restockItems = viewModel.itemsWithRestock.filter {
                 guard let rd = $0.restockDate else { return false }
@@ -130,6 +166,7 @@ struct CalendarView: View {
                         .foregroundStyle(.blue)
                 }
             }
+            .padding(.top, isLandscape ? 8 : 0)
             .padding(.horizontal)
 
             ScrollView {
@@ -162,6 +199,7 @@ struct CalendarView: View {
                     }
                 }
             }
+            .safeAreaPadding(.bottom)
         }
     }
 
