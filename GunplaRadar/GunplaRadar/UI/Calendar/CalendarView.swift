@@ -81,7 +81,7 @@ struct CalendarView: View {
                         Text("今月の購入予定金額 ¥\(total)")
                             .font(.caption.bold())
                             .foregroundStyle(.secondary)
-                            .padding(.trailing, 8)
+                            .padding(.trailing, 12)
                             .padding(.top, 4)
                             .padding(.bottom, 4)
                     }
