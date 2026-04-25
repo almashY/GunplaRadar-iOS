@@ -76,9 +76,9 @@ struct CalendarView: View {
                 // 選択日のアイテム
                 if let selected = viewModel.selectedDate {
                     selectedDateDetail(date: selected)
+                } else {
+                    Spacer()
                 }
-
-                Spacer()
             }
             .navigationTitle("カレンダー")
             .navigationBarTitleDisplayMode(.inline)
@@ -144,7 +144,6 @@ struct CalendarView: View {
                     }
                 }
             }
-            .frame(maxHeight: 200)
         }
     }
 
