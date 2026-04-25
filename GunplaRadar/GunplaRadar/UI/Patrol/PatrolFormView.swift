@@ -31,6 +31,10 @@ struct PatrolFormView: View {
             }
             .navigationTitle("巡回予定作成")
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: patrolDate) { _, newDate in
+                let validIds = Set(viewModel.filteredItems(for: newDate).map { $0.id })
+                selectedItemIds = selectedItemIds.intersection(validIds)
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") { dismiss() }
@@ -61,11 +65,12 @@ struct PatrolFormView: View {
     }
 
     private var itemSection: some View {
-        Section("対象アイテム") {
-            if viewModel.items.isEmpty {
-                Text("アイテムがありません").foregroundStyle(.secondary)
+        let filtered = viewModel.filteredItems(for: patrolDate)
+        return Section("対象アイテム（前後1ヶ月の再販予定）") {
+            if filtered.isEmpty {
+                Text("前後1ヶ月に再販予定のアイテムがありません").foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.items, id: \.id) { item in
+                ForEach(filtered, id: \.id) { item in
                     itemRow(item)
                 }
             }
@@ -74,7 +79,7 @@ struct PatrolFormView: View {
 
     private func itemRow(_ item: GunplaItem) -> some View {
         HStack {
-            Text(item.name)
+            Text("\(item.grade)：\(item.name)")
             Spacer()
             if selectedItemIds.contains(item.id) {
                 Image(systemName: "checkmark").foregroundStyle(Color.accentColor)

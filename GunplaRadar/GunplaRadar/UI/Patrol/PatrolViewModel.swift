@@ -40,6 +40,26 @@ class PatrolViewModel {
         plan.targetItemIdList.compactMap { id in items.first { $0.id == id } }
     }
 
+    /// 指定日の前月・当月・翌月に再販予定日があるアイテムを返す
+    func filteredItems(for date: Date) -> [GunplaItem] {
+        let cal = Calendar.current
+        guard let prevMonth = cal.date(byAdding: .month, value: -1, to: date),
+              let nextMonth = cal.date(byAdding: .month, value:  1, to: date) else {
+            return []
+        }
+        let targets: [(Int, Int)] = [
+            (cal.component(.year, from: prevMonth), cal.component(.month, from: prevMonth)),
+            (cal.component(.year, from: date),      cal.component(.month, from: date)),
+            (cal.component(.year, from: nextMonth), cal.component(.month, from: nextMonth))
+        ]
+        return items.filter { item in
+            guard let rd = item.restockDate else { return false }
+            let rdYear  = cal.component(.year,  from: rd)
+            let rdMonth = cal.component(.month, from: rd)
+            return targets.contains { $0 == rdYear && $1 == rdMonth }
+        }
+    }
+
     func insertPlan(date: Date, time: Date, storeId: String, targetItemIds: [String], notifyEnabled: Bool) {
         let plan = PatrolPlan(
             date: date,
