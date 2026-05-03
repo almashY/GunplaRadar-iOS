@@ -17,6 +17,7 @@ class GunplaStore {
     var isFavorite: Bool
     var averageDelayHours: Double
     var stockTimes: [Date]?  // 既存データのマイグレーション安全のためオプショナル
+    var memo: String?
 
     init(
         id: String = UUID().uuidString,

@@ -16,6 +16,8 @@ struct StoreStockTimeView: View {
     @State private var showingResetConfirm = false
     @State private var deletingIndex: Int? = nil
     @State private var newTime = Date()
+    @State private var memo: String = ""
+    @FocusState private var memoFocused: Bool
 
     private let maxCount = 5
 
@@ -72,6 +74,18 @@ struct StoreStockTimeView: View {
                     Text("編集ボタンをタップして品出し時刻を記録してください")
                 }
             }
+            Section("メモ") {
+                TextEditor(text: $memo)
+                    .frame(minHeight: 80)
+                    .focused($memoFocused)
+                    .onChange(of: memoFocused) { _, focused in
+                        if !focused {
+                            store.memo = memo.isEmpty ? nil : memo
+                            repository.updateStore()
+                        }
+                    }
+            }
+
             Section("品出し差分") {
                 let avg = store.averageDelayHours
                 LabeledContent("平均差分") {
@@ -88,6 +102,11 @@ struct StoreStockTimeView: View {
         }
         .navigationTitle(store.name)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { memo = store.memo ?? "" }
+        .onDisappear {
+            store.memo = memo.isEmpty ? nil : memo
+            repository.updateStore()
+        }
         .environment(\.editMode, $editMode)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
