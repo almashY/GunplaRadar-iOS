@@ -136,7 +136,6 @@ struct CalendarView: View {
                         .foregroundStyle(.secondary)
                         .padding(.trailing, 12)
                         .padding(.top, 4)
-                        .padding(.bottom, 4)
                 }
             }
 
