@@ -15,12 +15,24 @@ struct StoreView: View {
     @State private var selectedStoreId: String? = nil
     @State private var selectedMapFeature: MapFeature? = nil
     @State private var placeDetailItem: MKMapItem? = nil
-    @State private var cameraPosition: MapCameraPosition = .region(
-        MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
-            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+    @State private var cameraPosition: MapCameraPosition = {
+        let lat  = UserDefaults.standard.double(forKey: "map_last_lat")
+        let lon  = UserDefaults.standard.double(forKey: "map_last_lon")
+        let span = UserDefaults.standard.double(forKey: "map_last_span")
+        if lat != 0 && lon != 0 {
+            return .region(MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: lat, longitude: lon),
+                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
+            ))
+        }
+        return .userLocation(
+            followsHeading: false,
+            fallback: .region(MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: 35.6812, longitude: 139.7671),
+                span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            ))
         )
-    )
+    }()
     @State private var searchCompleter = LocationSearchCompleter()
     @State private var searchQuery: String = ""
     @State private var isSearchFocused: Bool = false
@@ -108,6 +120,13 @@ struct StoreView: View {
             }
         }
         .ignoresSafeArea(edges: .bottom)
+        .onMapCameraChange { context in
+            let center = context.region.center
+            let span   = context.region.span.latitudeDelta
+            UserDefaults.standard.set(center.latitude,  forKey: "map_last_lat")
+            UserDefaults.standard.set(center.longitude, forKey: "map_last_lon")
+            UserDefaults.standard.set(span,             forKey: "map_last_span")
+        }
         .onTapGesture {
             dismissKeyboard()
             isSearchFocused = false
