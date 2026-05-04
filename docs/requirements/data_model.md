@@ -32,6 +32,7 @@
 | stockDelayRecords | [StockDelayRecord] | 差分データ配列 |
 | averageDelayHours | Double | 平均ずれ時間 |
 | stockTimes | [Date]? | 品出し時刻記録（最大5件） |
+| memo | String? | 店舗メモ（自由記述） |
 
 ---
 
